@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>InventoryManagementDB</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{fb9b3c51-0a2d-40f8-a074-e1dda2dd5f8d}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>InventoryManagementDB</RootNamespace>
+    <AssemblyName>InventoryManagementDB</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+    <GenerateCreateScript>True</GenerateCreateScript>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="dbo\User Defined Types\" />
+    <Folder Include="Security\" />
+    <Folder Include="stock\" />
+    <Folder Include="stock\Tables\" />
+    <Folder Include="stock\Stored Procedures\" />
+    <Folder Include="database-refresh-scripts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\ShoppingList.sql" />
+    <Build Include="dbo\Tables\ShoppingListItem.sql" />
+    <Build Include="dbo\Tables\Subscription.sql" />
+    <Build Include="dbo\Tables\Item.sql" />
+    <Build Include="dbo\Tables\ItemRestock.sql" />
+    <Build Include="dbo\Tables\ItemGroup.sql" />
+    <Build Include="dbo\Tables\ItemTag.sql" />
+    <Build Include="dbo\Tables\Profile.sql" />
+    <Build Include="dbo\Tables\Group.sql" />
+    <Build Include="dbo\Tables\Tag.sql" />
+    <Build Include="dbo\Tables\ProfileSubscription.sql" />
+    <Build Include="dbo\Stored Procedures\getProfileSubscriptions.sql" />
+    <Build Include="dbo\Stored Procedures\getTags.sql" />
+    <Build Include="dbo\Stored Procedures\getGroups.sql" />
+    <Build Include="dbo\Stored Procedures\getItem.sql" />
+    <Build Include="dbo\Stored Procedures\getItemGroups.sql" />
+    <Build Include="dbo\Stored Procedures\getItemTags.sql" />
+    <Build Include="dbo\Stored Procedures\getShoppingLists.sql" />
+    <Build Include="dbo\Stored Procedures\getShoppingListItems.sql" />
+    <Build Include="dbo\Stored Procedures\upsertGroup.sql" />
+    <Build Include="dbo\Stored Procedures\upsertTag.sql" />
+    <Build Include="dbo\Stored Procedures\upsertItem.sql" />
+    <Build Include="dbo\Stored Procedures\upsertItemGroup.sql" />
+    <Build Include="dbo\Stored Procedures\upsertItemTag.sql" />
+    <Build Include="dbo\Stored Procedures\getItemsByGroups.sql" />
+    <Build Include="dbo\Stored Procedures\getItemsByTags.sql" />
+    <Build Include="dbo\Stored Procedures\getSearchResults.sql" />
+    <Build Include="dbo\Stored Procedures\getLowQuantityItems.sql" />
+    <Build Include="dbo\Stored Procedures\getItemCollection.sql" />
+    <Build Include="dbo\Stored Procedures\getGroupCollection.sql" />
+    <Build Include="dbo\Stored Procedures\getTagCollection.sql" />
+    <Build Include="dbo\Stored Procedures\upsertProfile.sql" />
+    <Build Include="dbo\Stored Procedures\upsertProfileSubscription.sql" />
+    <Build Include="dbo\Stored Procedures\upsertSubscription.sql" />
+    <Build Include="dbo\Stored Procedures\upsertShoppingList.sql" />
+    <Build Include="dbo\Stored Procedures\shoppingListCheckout.sql" />
+    <Build Include="dbo\Stored Procedures\upsertShoppingListItems.sql" />
+    <Build Include="dbo\User Defined Types\ShoppingListItemTVP.sql" />
+    <Build Include="dbo\User Defined Types\IDTVP.sql" />
+    <Build Include="dbo\Stored Procedures\upsertItemTags.sql" />
+    <Build Include="dbo\Stored Procedures\upsertItemGroups.sql" />
+    <Build Include="dbo\User Defined Types\ItemAttributeTVP.sql" />
+    <Build Include="dbo\Tables\ShoppingListItemCheckout.sql" />
+    <Build Include="dbo\Stored Procedures\shoppingListItemCheckoutUpdateSelection.sql" />
+    <Build Include="dbo\Stored Procedures\shoppingListItemCheckoutSync.sql" />
+    <Build Include="dbo\Stored Procedures\shoppingListItemCheckoutInitialize.sql" />
+    <Build Include="stock\Tables\Item.sql" />
+    <Build Include="stock\Tables\SubCategory.sql" />
+    <Build Include="stock\Tables\Category.sql" />
+    <Build Include="dbo\Stored Procedures\getTagsWithItemCounts.sql" />
+    <Build Include="dbo\Stored Procedures\getShoppingListsWithItemCounts.sql" />
+    <Build Include="dbo\Stored Procedures\getItemsByIds.sql" />
+    <Build Include="dbo\Stored Procedures\getGroupsWithItemCounts.sql" />
+    <Build Include="stock\Stored Procedures\getItems.sql" />
+    <Build Include="Security\stock.sql" />
+    <Build Include="stock\Stored Procedures\importItems.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="azure-pipelines.yml" />
+    <None Include="README.md" />
+    <None Include="azure-pipelines-UAT-Provision.yml" />
+    <None Include=".gitignore" />
+    <None Include="database-refresh-scripts\UAT-ResetBaseline.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="database-refresh-scripts\UAT-Refresh.ps1" />
+    <None Include="sandbox.yml" />
+  </ItemGroup>
+</Project>

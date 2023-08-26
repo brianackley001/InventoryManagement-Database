@@ -1,0 +1,92 @@
+trigger:
+- develop
+- master
+- main
+
+variables:
+  - group: database-ci
+  - group: uat-db-secrets
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildDacpac
+    displayName: 'Build Dacpac'
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - task: VSBuild@1
+      displayName: 'Build the database project'
+      inputs:
+        solution: '**/*.sln'
+
+    - task: CopyFiles@2
+      displayName: 'Copy dacpac file to staging directory'
+      inputs:
+        contents: |
+          bin/**/*.dacpac
+        targetFolder: '$(Build.StagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: dropDacpac
+      condition: succeededOrFailed()
+
+- stage: DeployUAT
+  displayName: 'Deploy to UAT environment DB'
+  dependsOn: Build
+  condition: |
+    and
+    (
+      succeeded(),
+      eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+    )
+  jobs:
+   - job: DeployDacpac
+     pool:
+      vmImage: 'windows-2019'
+      environment:  'UAT'
+     steps:
+        - download: current
+          artifact: dropDacpac
+          patterns: '**/*'
+        - task: SqlAzureDacpacDeployment@1
+          displayName: 'Deploy SQL Dacpac'
+          inputs:
+            azureSubscription: 'Resource Manager - InventoryManagement DB'
+            authenticationType: 'server'
+            serverName: '$(uatServerName).database.windows.net'
+            databaseName: '$(databaseName)'
+            sqlUsername: '$(adminSqlUserName)'
+            sqlPassword: '$(invMgrSqlAdminPassword)'
+            deployType: 'DacpacTask'
+            deploymentAction: 'Publish'
+            dacpacFile: '$(Pipeline.Workspace)/dropDacpac/bin/Debug/InventoryManagementDB.dacpac'
+            ipDetectionMethod: 'AutoDetect'
+
+- stage: 'ProductionRelease'
+  displayName: 'Trigger the Database Release Pipeline to Production'
+  dependsOn: Build
+  condition: |
+    and
+    (
+      succeeded(),
+      eq(variables['Build.SourceBranch'], 'refs/heads/master')
+    )
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'windows-2019'
+    environment: ProductionDB
+    variables:
+    - group: database-ci
+    - group: uat-db-secrets
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: dropDacpac
+            patterns: '**/*'

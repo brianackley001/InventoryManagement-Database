@@ -1,0 +1,32 @@
+
+pool:
+  vmImage: 'windows-2019'
+
+stages:
+  - stage: 'Verify'
+    displayName: 'Validate group variables'
+    jobs:
+    - job: 'Output'
+      displayName: 'Echo variables'
+      variables:
+      - group:  uat-db-refresh
+      - name: job_name
+        value: 'TESTING!'
+      - group: uat-db-secrets
+      - name: job_name2
+        value: 'Secrets Job Name'
+      steps:
+         - task: AzurePowerShell@5
+           inputs:
+             azureSubscription: 'Resource Manager - InventoryManagement DB'
+             ScriptType: 'FilePath'
+             ScriptPath: 'database-refresh-scripts/UAT-Refresh.ps1'
+             ScriptArguments: 
+              -serverName $(serverName) `
+              -databaseName $(databaseName) `
+              -adminUserName $(adminSqlUserName) `
+              -adminPassword "$(invMgrSqlAdminPassword)"  `
+              -svcAccountUserName $(svcAccountUserName) `
+              -svcAccountPassword "$(svcAccountPasswordUAT)" `
+              -dataPopulationScript $(System.DefaultWorkingDirectory)\database-refresh-scripts\UAT-ResetBaseline.sql
+             azurePowerShellVersion: 'LatestVersion'

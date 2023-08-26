@@ -1,0 +1,111 @@
+trigger:
+- feature/task-000000000667
+
+variables:
+- group: uat-db-refresh
+- group: uat-db-secrets
+
+stages:
+- stage: 'Refresh'
+  displayName: 'Refresh UAT DB Environment'
+  jobs:
+  - job: BuildDacpac
+    displayName: "Build DB dacpac"
+    pool:
+       vmImage: 'windows-2019'
+
+    steps:
+    - task: VSBuild@1
+      displayName: 'Build the database project'
+      inputs:
+        solution: '**/*.sln'
+
+    - task: CopyFiles@2
+      displayName: 'Copy dacpac file to staging directory'
+      inputs:
+        contents: |
+          bin/**/*.dacpac
+        targetFolder: '$(Build.StagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: dropDacpac
+      condition: succeededOrFailed()
+
+  - job: AzureCLI
+    displayName: 'Create Azure DB Resources'
+    pool:
+     vmImage: 'ubuntu-16.04'
+    steps:
+      - task: AzureCLI@2
+        displayName: 'Create DB Server'
+        inputs:
+           azureSubscription: 'Resource Manager - Inventory Management'
+           scriptType: 'pscore'
+           scriptLocation: 'inlineScript'        
+           inlineScript: | 
+             az sql server create --location $(azureRegion) --name $(serverName) --resource-group $(resourceGroupName) --admin-user $(adminSqlUserName) --admin-password "$(invMgrSqlAdminPassword)"
+
+      - task: AzureCLI@2
+        displayName: 'Create Database'
+        inputs:
+           azureSubscription: 'Resource Manager - Inventory Management'
+           scriptType: 'pscore'
+           scriptLocation: 'inlineScript'
+           inlineScript: az sql db create --server $(serverName) --name $(databaseName) --resource-group $(resourceGroupName) --service-objective Basic
+      - task: AzureCLI@2
+        displayName: 'Azure Firewall Rule'
+        inputs:
+           azureSubscription: 'Resource Manager - Inventory Management'
+           scriptType: 'pscore'
+           scriptLocation: 'inlineScript'
+           inlineScript: az sql server firewall-rule create -g $(resourceGroupName) -s $(serverName) -n AzureAccess --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
+
+  - job: DeployDacpac
+    dependsOn: 
+     - BuildDacpac
+     - AzureCLI
+    displayName: "Deploy DB dacpac"
+    pool:
+       vmImage: 'windows-2019'
+    steps:
+        - download: current
+          artifact: dropDacpac
+          patterns: '**/*'
+        - task: SqlAzureDacpacDeployment@1
+          displayName: 'Deploy SQL Dacpac'
+          inputs:
+            azureSubscription: 'Resource Manager - InventoryManagement DB'
+            authenticationType: 'server'
+            serverName: '$(serverName).database.windows.net'
+            databaseName: '$(databaseName)'
+            sqlUsername: '$(adminSqlUserName)'
+            sqlPassword: '$(invMgrSqlAdminPassword)'
+            deployType: 'DacpacTask'
+            deploymentAction: 'Publish'
+            dacpacFile: '$(Pipeline.Workspace)/dropDacpac/bin/Debug/InventoryManagementDB.dacpac'
+            ipDetectionMethod: 'AutoDetect'
+
+  - job: SqlScripts 
+    dependsOn: DeployDacpac 
+    displayName: 'Execute Powershell Invoke-Sqlcmd SQL Scripts'
+    pool:
+        vmImage: 'windows-2019'
+    steps:
+         - task: AzurePowerShell@5
+           inputs:
+             azureSubscription: 'Resource Manager - InventoryManagement DB'
+             ScriptType: 'FilePath'
+             ScriptPath: 'database-refresh-scripts/UAT-Refresh.ps1'
+             ScriptArguments: 
+              -serverName $(serverName) `
+              -databaseName $(databaseName) `
+              -adminUserName $(adminSqlUserName) `
+              -adminPassword "$(invMgrSqlAdminPassword)"  `
+              -svcAccountUserName $(svcAccountUserName) `
+              -svcAccountPassword "$(svcAccountPasswordUAT)" `
+              -dataPopulationScript $(System.DefaultWorkingDirectory)\database-refresh-scripts\UAT-ResetBaseline.sql
+             azurePowerShellVersion: 'LatestVersion'
